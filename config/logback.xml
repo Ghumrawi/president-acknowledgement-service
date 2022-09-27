@@ -1,0 +1,71 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<configuration scanPeriod="5 minutes" scan="true">
+	<property name="DEV_HOME" value="logs" />
+	<!-- <property name="DEV_HOME" value="C:/opt/runnables/pcard-request-service/logs" /> -->
+
+	<appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
+		<!-- encoders are assigned the type ... ch.qos.logback.classic.encoder.PatternLayoutEncoder by default -->
+		<encoder>
+			<!-- <pattern>%-4relative [%thread] %-5level %logger{35} - %msg %n</pattern> -->
+			<pattern>[%p] %d{ISO8601} %c - %m%n</pattern>
+		</encoder>
+	</appender>
+
+	<!--  Size and Time based rolling file
+        Note the “%i” conversion token in addition to “%d”.
+        Each time the current log file reaches maxFileSize before the current time period ends,
+        it will be archived with an increasing index, starting at 0.
+    -->
+	<appender name="FILE-AUDIT" class="ch.qos.logback.core.rolling.RollingFileAppender">
+		<file>${DEV_HOME}/application.log</file>
+		<encoder class="ch.qos.logback.classic.encoder.PatternLayoutEncoder">
+			<!--  <Pattern>%d{yyyy-MM-dd HH:mm:ss} - %msg%n</Pattern> -->
+			<!-- <Pattern>[%p] %d{ISO8601} %c - %m%n</Pattern> -->
+			<Pattern>[%d{yyyy-MM-dd HH:mm:ss.SSS}] [${HOSTNAME}] [%thread] %level %logger{36}@%method:%line - %msg %n</Pattern>
+		</encoder>
+
+		<rollingPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedRollingPolicy">
+			<fileNamePattern>${DEV_HOME}/president-ack-Service.%d{yyyy-MM-dd}.%i.log</fileNamePattern>
+			<maxFileSize>50MB</maxFileSize>
+			<maxHistory>60</maxHistory>
+			<!-- 
+			<timeBasedFileNamingAndTriggeringPolicy class="ch.qos.logback.core.rolling.SizeAndTimeBasedFNATP">
+				<maxFileSize>5MB</maxFileSize>
+			</timeBasedFileNamingAndTriggeringPolicy>
+			-->
+		</rollingPolicy>
+
+		<!--
+                <rollingPolicy class="ch.qos.logback.core.rolling.FixedWindowRollingPolicy">
+                    <fileNamePattern>${DEV_HOME}/newHireService.%i.log</fileNamePattern>
+                    <MinIndex>1</MinIndex>
+                    <MaxIndex>10</MaxIndex>
+                </rollingPolicy>
+                <triggeringPolicy class="ch.qos.logback.core.rolling.SizeBasedTriggeringPolicy">
+                    <MaxFileSize>5MB</MaxFileSize>
+                </triggeringPolicy>
+        -->
+
+	</appender>
+
+	<logger name="com.winsupply.pas" level="debug" additivity="false">
+		<appender-ref ref="FILE-AUDIT" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+ 	<logger name="org.springframework.security" level="debug" additivity="false">
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<logger name="com.winsupply.webauth.securityframework" level="debug" additivity="false">
+		<appender-ref ref="FILE-AUDIT" />
+		<appender-ref ref="STDOUT" />
+	</logger>
+
+	<root level="error">
+		<appender-ref ref="FILE-AUDIT" />
+		<appender-ref ref="STDOUT" />
+	</root>
+
+
+</configuration>

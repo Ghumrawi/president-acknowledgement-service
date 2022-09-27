@@ -1,0 +1,110 @@
+//*****  Gradle 8.0
+/* *****  Note:    the reason we are using this dependency; jt400-jdk8:9.6  *****
+    new version spring boot and HikariDataSource no longer support JT400 because it is looking for the isValid() implementation
+    we could use the SimpleDriverDataSource but this does not support connection pooling ..
+ */
+plugins {
+    id 'org.springframework.boot' version '2.7.4'
+    id 'io.spring.dependency-management' version '1.0.14.RELEASE'
+    id 'java'
+    id 'groovy'
+}
+
+apply plugin: 'checkstyle'
+
+
+//-- these 2 lines below are essential to make java and groovy compile together
+//sourceSets.main.java.srcDirs = []
+//sourceSets.main.groovy.srcDirs = ["src/main/java", "src/main/groovy"]
+sourceSets{
+    main {
+        java {
+            srcDirs=[] // don't compile Java code twice
+        }
+        groovy {
+            srcDirs=[ 'src/main/groovy', 'src/main/java']
+        }
+    }
+}
+
+
+group = 'com.supply.presidentacknowledgementservice'
+///version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '11'
+
+configurations {
+    compileOnly {
+        extendsFrom annotationProcessor
+    }
+}
+
+checkstyle {
+    toolVersion "7.6.1"
+    ignoreFailures = true
+}
+
+repositories {
+    maven {
+        url "http://nexusrepo.winwholesale.com:8081/repository/win-maven-releases"
+        allowInsecureProtocol true
+    }
+    maven {
+        url "http://nexusrepo.winwholesale.com:8081/repository/win-maven-snapshots"
+        allowInsecureProtocol true
+    }
+    mavenCentral()
+}
+
+bootJar {
+    archiveBaseName = 'president-acknowledgement-service'
+}
+
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    implementation 'org.springframework.boot:spring-boot-starter-web-services'
+    implementation 'org.springframework.boot:spring-boot-starter-data-ldap'
+    implementation 'org.springframework.boot:spring-boot-starter-mail'
+    implementation 'org.springframework.boot:spring-boot-starter-jersey'
+    implementation 'org.springframework.boot:spring-boot-starter-webflux'
+    compileOnly 'org.projectlombok:lombok'
+    developmentOnly 'org.springframework.boot:spring-boot-devtools'
+    runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
+    annotationProcessor 'org.projectlombok:lombok'
+    testImplementation 'org.springframework.boot:spring-boot-starter-test'
+
+    implementation "org.springframework.boot:spring-boot-starter-logging"
+    implementation ("org.springframework.boot:spring-boot-starter-jdbc") {
+        exclude group: 'org.apache.tomcat', module:'tomcat-jdbc'
+    }
+
+    implementation "org.springframework.boot:spring-boot-starter-cache"
+    implementation group: 'javax.cache', name: 'cache-api', version: '1.1.0'
+    implementation group: 'org.ehcache', name: 'ehcache', version: '3.6.2'
+
+    implementation "org.codehaus.groovy:groovy-all:3.0.12"
+    //implementation "org.apache.directory:groovy-ldap:1.5"
+    implementation "org.apache.commons:commons-dbcp2:2.9.0"
+    implementation "commons-codec:commons-codec:1.15"
+
+    ///runtimeOnly 'com.microsoft.sqlserver:mssql-jdbc'
+    //-- Not including the version .. we got the latest version which was 10.2.x .. version 10.x caused an SSL connection issue
+    //-- this new driver version does not support older version of MS SQL server ...
+    //-- For this reason we used a lower version of the driver ... picked v7.4.1 because that is what I had for PTO data load project
+    implementation "com.microsoft.sqlserver:mssql-jdbc:7.4.1.jre8"
+    //--use this one (TcaJdbc:1.0)for both dev/prod. control at the connections string level
+    implementation "com.ibm.tcAccess:TcaJdbc:1.0"
+    implementation "lotus.domino:NCSO:1.6.0"
+    //implementation "net.sf.jt400:jt400:10.2"
+    ///implementation "net.sf.jt400:jt400:11.0"
+    implementation 'net.sf.jt400:jt400-jdk8:9.6'    //-- why we are using this  ... read not above
+
+    //--- new generation ... could not make this to work .. connection issues , looking for port number etc...
+    ///implementation 'com.ibm.db2.jcc:db2jcc:db2jcc4'
+
+
+}
+
+tasks.named('test') {
+    useJUnitPlatform()
+}
